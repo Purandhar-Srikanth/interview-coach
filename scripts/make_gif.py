@@ -35,8 +35,10 @@ def main() -> None:
     )
     shutil.rmtree(FRAMES)  # frames are temporary
     seconds = sum(durations) / 1000
-    print(f"Wrote {OUT.relative_to(ROOT)}: {len(frames)} frames, {seconds:.0f}s, "
-          f"{OUT.stat().st_size / 1e6:.1f} MB")
+    print(
+        f"Wrote {OUT.relative_to(ROOT)}: {len(frames)} frames, {seconds:.0f}s, "
+        f"{OUT.stat().st_size / 1e6:.1f} MB"
+    )
 
 
 if __name__ == "__main__":
