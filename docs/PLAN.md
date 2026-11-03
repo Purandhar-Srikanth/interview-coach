@@ -1,6 +1,6 @@
 # Interview Coach — Phase 2 Plan
 
-Status: **approved** · Date: 2026-11-03
+Status: **complete** (M0–M8). Live: https://interview-coach-tgse.onrender.com
 
 ## 1. Decisions (from Phase 1)
 

@@ -34,3 +34,6 @@ Thumbs.db
 
 # Eval dry runs (mock scores are meaningless)
 evals/results_mock.*
+
+# Demo recording frames (temporary)
+docs/media/frames/
