@@ -1,0 +1,488 @@
+{
+  "meta": {
+    "model": "gpt-6.1-terra",
+    "reasoning_effort": "low",
+    "repeats": 3,
+    "date": "2026-11-03",
+    "cost_usd": 0.21692799999999998
+  },
+  "cases": 21,
+  "questions": 7,
+  "mean_stdev": 1.701121668454072,
+  "max_spread": 16,
+  "within_10_points": 0.9523809523809523,
+  "pairwise_ranking_accuracy": 1.0,
+  "questions_fully_ordered": 1.0,
+  "band_agreement": 0.9047619047619048,
+  "dimension_stability": {
+    "correctness": 0.9523809523809523,
+    "depth": 0.9841269841269841,
+    "clarity": 0.9206349206349206,
+    "relevance": 0.9206349206349206
+  },
+  "mean_seconds_per_score": 7.826666666666666,
+  "per_case": [
+    {
+      "id": "imbalance-weak",
+      "question_id": "imbalance",
+      "qtype": "ml_concept",
+      "expected": "weak",
+      "scores": [
+        25,
+        21,
+        25
+      ],
+      "median": 25,
+      "spread": 4,
+      "stdev": 1.8856180831641267,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 0.6666666666666666,
+        "relevance": 1.0
+      },
+      "seconds": 8.583333333333334
+    },
+    {
+      "id": "imbalance-average",
+      "question_id": "imbalance",
+      "qtype": "ml_concept",
+      "expected": "average",
+      "scores": [
+        77,
+        73,
+        77
+      ],
+      "median": 77,
+      "spread": 4,
+      "stdev": 1.8856180831641267,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 0.6666666666666666
+      },
+      "seconds": 8.19
+    },
+    {
+      "id": "imbalance-strong",
+      "question_id": "imbalance",
+      "qtype": "ml_concept",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        100
+      ],
+      "median": 100,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 8.196666666666667
+    },
+    {
+      "id": "sql_topn-weak",
+      "question_id": "sql_topn",
+      "qtype": "sql_python",
+      "expected": "weak",
+      "scores": [
+        25,
+        25,
+        25
+      ],
+      "median": 25,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 8.606666666666666
+    },
+    {
+      "id": "sql_topn-average",
+      "question_id": "sql_topn",
+      "qtype": "sql_python",
+      "expected": "average",
+      "scores": [
+        56,
+        61,
+        61
+      ],
+      "median": 61,
+      "spread": 5,
+      "stdev": 2.3570226039551585,
+      "band": "average",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 0.6666666666666666
+      },
+      "seconds": 8.023333333333333
+    },
+    {
+      "id": "sql_topn-strong",
+      "question_id": "sql_topn",
+      "qtype": "sql_python",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        90
+      ],
+      "median": 100,
+      "spread": 10,
+      "stdev": 4.714045207910317,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 0.6666666666666666,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.116666666666666
+    },
+    {
+      "id": "pandas_monthly-weak",
+      "question_id": "pandas_monthly",
+      "qtype": "sql_python",
+      "expected": "weak",
+      "scores": [
+        18,
+        18,
+        25
+      ],
+      "median": 18,
+      "spread": 7,
+      "stdev": 3.2998316455372216,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 0.6666666666666666,
+        "relevance": 1.0
+      },
+      "seconds": 7.226666666666667
+    },
+    {
+      "id": "pandas_monthly-average",
+      "question_id": "pandas_monthly",
+      "qtype": "sql_python",
+      "expected": "average",
+      "scores": [
+        61,
+        61,
+        61
+      ],
+      "median": 61,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "average",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 6.693333333333333
+    },
+    {
+      "id": "pandas_monthly-strong",
+      "question_id": "pandas_monthly",
+      "qtype": "sql_python",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        90
+      ],
+      "median": 100,
+      "spread": 10,
+      "stdev": 4.714045207910317,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 0.6666666666666666,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.45
+    },
+    {
+      "id": "bias_variance-weak",
+      "question_id": "bias_variance",
+      "qtype": "ml_concept",
+      "expected": "weak",
+      "scores": [
+        12,
+        18,
+        18
+      ],
+      "median": 18,
+      "spread": 6,
+      "stdev": 2.8284271247461903,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 0.6666666666666666
+      },
+      "seconds": 7.763333333333333
+    },
+    {
+      "id": "bias_variance-average",
+      "question_id": "bias_variance",
+      "qtype": "ml_concept",
+      "expected": "average",
+      "scores": [
+        56,
+        56,
+        56
+      ],
+      "median": 56,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "average",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.95
+    },
+    {
+      "id": "bias_variance-strong",
+      "question_id": "bias_variance",
+      "qtype": "ml_concept",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        100
+      ],
+      "median": 100,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 6.93
+    },
+    {
+      "id": "p_value-weak",
+      "question_id": "p_value",
+      "qtype": "ml_concept",
+      "expected": "weak",
+      "scores": [
+        25,
+        25,
+        25
+      ],
+      "median": 25,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.3
+    },
+    {
+      "id": "p_value-average",
+      "question_id": "p_value",
+      "qtype": "ml_concept",
+      "expected": "average",
+      "scores": [
+        46,
+        43,
+        41
+      ],
+      "median": 43,
+      "spread": 5,
+      "stdev": 2.0548046676563256,
+      "band": "average",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 0.6666666666666666,
+        "relevance": 0.6666666666666666
+      },
+      "seconds": 7.5633333333333335
+    },
+    {
+      "id": "p_value-strong",
+      "question_id": "p_value",
+      "qtype": "ml_concept",
+      "expected": "strong",
+      "scores": [
+        90,
+        90,
+        90
+      ],
+      "median": 90,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.383333333333333
+    },
+    {
+      "id": "mask_project-weak",
+      "question_id": "mask_project",
+      "qtype": "project",
+      "expected": "weak",
+      "scores": [
+        35,
+        28,
+        28
+      ],
+      "median": 28,
+      "spread": 7,
+      "stdev": 3.2998316455372216,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 0.6666666666666666,
+        "relevance": 1.0
+      },
+      "seconds": 7.673333333333334
+    },
+    {
+      "id": "mask_project-average",
+      "question_id": "mask_project",
+      "qtype": "project",
+      "expected": "average",
+      "scores": [
+        73,
+        61,
+        77
+      ],
+      "median": 73,
+      "spread": 16,
+      "stdev": 6.79869268479038,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 0.6666666666666666,
+        "depth": 0.6666666666666666,
+        "clarity": 1.0,
+        "relevance": 0.6666666666666666
+      },
+      "seconds": 9.066666666666666
+    },
+    {
+      "id": "mask_project-strong",
+      "question_id": "mask_project",
+      "qtype": "project",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        100
+      ],
+      "median": 100,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.626666666666667
+    },
+    {
+      "id": "deadline-weak",
+      "question_id": "deadline",
+      "qtype": "behavioural",
+      "expected": "weak",
+      "scores": [
+        20,
+        20,
+        16
+      ],
+      "median": 20,
+      "spread": 4,
+      "stdev": 1.8856180831641267,
+      "band": "weak",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 0.6666666666666666,
+        "relevance": 1.0
+      },
+      "seconds": 8.776666666666667
+    },
+    {
+      "id": "deadline-average",
+      "question_id": "deadline",
+      "qtype": "behavioural",
+      "expected": "average",
+      "scores": [
+        51,
+        51,
+        51
+      ],
+      "median": 51,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "average",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 9.026666666666667
+    },
+    {
+      "id": "deadline-strong",
+      "question_id": "deadline",
+      "qtype": "behavioural",
+      "expected": "strong",
+      "scores": [
+        100,
+        100,
+        100
+      ],
+      "median": 100,
+      "spread": 0,
+      "stdev": 0.0,
+      "band": "strong",
+      "dimension_stability": {
+        "correctness": 1.0,
+        "depth": 1.0,
+        "clarity": 1.0,
+        "relevance": 1.0
+      },
+      "seconds": 7.213333333333333
+    }
+  ]
+}

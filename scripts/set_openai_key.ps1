@@ -18,9 +18,11 @@ if (-not $key.StartsWith("sk-")) {
 }
 
 # Keep any other settings already in .env; replace only these two.
+# @( ) keeps this a list even when only one line is left; otherwise PowerShell would turn it
+# into a single string and the lines below would be glued onto it.
 $lines = @()
 if (Test-Path $envFile) {
-    $lines = Get-Content $envFile | Where-Object { $_ -notmatch '^(LLM_MODE|OPENAI_API_KEY)=' }
+    $lines = @(Get-Content $envFile | Where-Object { $_ -notmatch '^(LLM_MODE|OPENAI_API_KEY)=' })
 }
 $lines += "LLM_MODE=openai"
 $lines += "OPENAI_API_KEY=$key"

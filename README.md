@@ -91,10 +91,21 @@ are given to the scorer) · fixed, low reasoning effort · and an [eval set](eva
 | Cost | **$0.02 per 5-question round** (so the $1/day demo cap ≈ 50 rounds) |
 
 **Scoring evals** ([evals/](evals/)): 21 hand-labelled answers (7 questions × weak/average/strong),
-each scored 3× with the production scorer, measuring ranking accuracy, band agreement,
-consistency (std dev) and per-dimension stability. The harness runs in CI with mock scores;
-run it against the real model with `.venv\Scripts\python evals\run_evals.py` (~$0.20). Results
-are written to `evals/results.md`.
+each scored 3× with the production scorer (`gpt-6.1-terra`, reasoning effort low):
+
+| Metric | Result |
+|---|---|
+| Ranking: strong > average > weak (all pairs) | **100%** (7/7 questions fully ordered) |
+| Consistency: mean std dev of re-scores | **1.7 points** (95% of answers within 10 points) |
+| Band agreement (weak <40, average 40–69, strong 70+) | **90%** |
+| Same 1–5 score on re-runs (correctness / depth / clarity / relevance) | 95% / 98% / 92% / 92% |
+| Time and cost | 7.8 s per answer · $0.22 for all 63 scorings |
+
+**What it shows:** the scorer orders answers perfectly and is very stable. It's **slightly lenient
+at the top**: strong answers usually hit 100 (a ceiling effect), and 2 of 7 "average" answers
+scored as strong (73–77). Next step: a stricter level-5 anchor and a few harder "average" cases.
+Full per-answer table: [evals/results.md](evals/results.md). Re-run with
+`.venv\Scripts\python evals\run_evals.py` (the harness also runs in CI with mock scores).
 
 ## Quick start
 
