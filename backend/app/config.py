@@ -1,4 +1,4 @@
-"""App settings, loaded once from environment variables (and the root .env file)."""
+"""App settings, loaded once from the root .env file and environment variables."""
 
 from functools import lru_cache
 from pathlib import Path
@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     demo_rounds_per_visitor_per_day: int = 2
 
     database_url: str = f"sqlite:///{ROOT_DIR / 'interview_coach.db'}"
+
+    @classmethod
+    def settings_customise_sources(
+        cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings
+    ):
+        # The project's .env wins over machine-wide environment variables, so an old key set
+        # in Windows can't silently override this project's key. On the live server there is
+        # no .env file, so its secrets come from environment variables as usual.
+        return init_settings, dotenv_settings, env_settings, file_secret_settings
 
 
 @lru_cache
