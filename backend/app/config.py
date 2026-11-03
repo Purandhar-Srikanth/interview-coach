@@ -1,5 +1,6 @@
 """App settings, loaded once from the root .env file and environment variables."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -7,10 +8,12 @@ from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
+# Tests set IGNORE_DOTENV=1 so a real key or database in your .env can never be used by them.
+ENV_FILE = None if os.environ.get("IGNORE_DOTENV") else ROOT_DIR / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ROOT_DIR / ".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     # SecretStr hides the key when settings are printed or logged.
     openai_api_key: SecretStr | None = None
@@ -22,6 +25,7 @@ class Settings(BaseSettings):
     reasoning_effort: str = "low"
     # "openai" for real calls, "mock" for canned answers (no key or cost needed).
     llm_mode: str = "openai"
+    mock_delay_s: float = 1.0  # pause per mock call so loading states are visible
 
     session_cost_cap_usd: float = 0.25
     daily_cost_cap_usd: float = 1.00

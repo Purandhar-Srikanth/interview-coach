@@ -31,3 +31,6 @@ playwright-report/
 .DS_Store
 Thumbs.db
 .claude/
+
+# Eval dry runs (mock scores are meaningless)
+evals/results_mock.*

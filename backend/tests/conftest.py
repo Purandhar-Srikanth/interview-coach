@@ -8,6 +8,7 @@ from pathlib import Path
 # Must be set before the app is imported, because the DB engine is created at import time.
 _tmp_dir = tempfile.mkdtemp()
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp_dir) / 'test.db'}"
+os.environ["IGNORE_DOTENV"] = "1"  # never use a real key or database from .env in tests
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

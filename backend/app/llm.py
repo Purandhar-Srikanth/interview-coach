@@ -277,5 +277,5 @@ def get_llm() -> LLM:
     if settings.llm_mode == "mock":
         from app.mock_llm import MockLLM
 
-        return MockLLM(delay_s=1.0)
+        return MockLLM(delay_s=settings.mock_delay_s)
     return OpenAILLM(settings)

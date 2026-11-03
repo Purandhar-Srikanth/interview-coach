@@ -13,12 +13,11 @@ from langgraph.config import get_stream_writer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.agent import memory, planner, prompts
-from app.agent.rubric import overall_score, rubric_text
+from app.agent import memory, planner, prompts, scoring
 from app.agent.topics import topic_label, topic_qtype
 from app.llm import LLM, Budget
 from app.models import Answer, InterviewSession, Question, Score
-from app.schemas import AnswerScore, QuestionDraft
+from app.schemas import QuestionDraft
 from app.serializers import answer_out, question_out
 
 Action = Literal["start", "answer", "next"]
@@ -139,19 +138,14 @@ def score_answer(state: InterviewState, config: RunnableConfig) -> dict:
     question = answer.question
     write({"type": "scoring"})
 
-    result = ctx.llm.structured(
-        purpose="score_answer",
-        role="main",
-        instructions=prompts.SCORING_INSTRUCTIONS.format(rubric=rubric_text(question.qtype)),
-        input=prompts.scoring_input(
-            question=question.text,
-            qtype=question.qtype,
-            role_title=ctx.session.role_title,
-            jd_skills=(ctx.session.profile or {}).get("jd_key_skills", []),
-            expected_points=question.expected_points,
-            answer=answer.text,
-        ),
-        schema=AnswerScore,
+    result, overall = scoring.score_answer(
+        ctx.llm,
+        question=question.text,
+        qtype=question.qtype,
+        role_title=ctx.session.role_title,
+        jd_skills=(ctx.session.profile or {}).get("jd_key_skills", []),
+        expected_points=question.expected_points,
+        answer=answer.text,
         budget=ctx.budget,
     )
     answer.score = Score(
@@ -159,7 +153,7 @@ def score_answer(state: InterviewState, config: RunnableConfig) -> dict:
         depth=result.depth.score,
         clarity=result.clarity.score,
         relevance=result.relevance.score,
-        overall=overall_score(result),
+        overall=overall,
         justifications={
             name: getattr(result, name).justification
             for name in ("correctness", "depth", "clarity", "relevance")
