@@ -6,6 +6,7 @@ const SHORTCUTS = [
   ['S', 'Skip question'],
   ['R', 'Retry the question'],
   ['N', 'Next question'],
+  ['M', 'Start / stop voice answer'],
   ['/', 'Focus the answer box'],
   ['Esc', 'Leave the answer box / close this'],
   ['?', 'Show this help'],

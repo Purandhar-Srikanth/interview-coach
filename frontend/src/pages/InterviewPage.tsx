@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router'
 import Alert from '../components/Alert'
 import BottomSheet from '../components/BottomSheet'
 import AnswerTimer from '../components/interview/AnswerTimer'
+import MicButton from '../components/interview/MicButton'
 import { AgentBubble, SkippedNote, TypingDots, UserBubble } from '../components/interview/ChatBubbles'
 import RoundComplete from '../components/interview/RoundComplete'
 import ShortcutsHelp from '../components/interview/ShortcutsHelp'
@@ -12,6 +13,7 @@ import RubricGuide from '../components/score/RubricGuide'
 import ScoreChip from '../components/score/ScoreChip'
 import ScoreReveal from '../components/score/ScoreReveal'
 import { useInterview } from '../hooks/useInterview'
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import type { Answer, Question } from '../lib/api'
 import { QTYPE_LABELS } from '../lib/format'
 import { topicLabel } from '../lib/topics'
@@ -61,6 +63,31 @@ export default function InterviewPage() {
   const scored = questions.flatMap((q) => q.answers.filter((a) => a.score).map((a) => ({ q, a })))
   const selected = scored.find((s) => s.a.id === selectedId) ?? scored.at(-1)
 
+  // Voice answers: spoken words are added after whatever was already typed.
+  const voiceBase = useRef('')
+  const voiceActive = useRef(false) // false once the answer is submitted, so late words are ignored
+  const speech = useSpeechRecognition((spoken) => {
+    if (!voiceActive.current) return
+    const typed = voiceBase.current.trimEnd()
+    setDraft((typed && spoken ? `${typed} ${spoken}` : typed || spoken).slice(0, ANSWER_MAX))
+  })
+  function toggleVoice() {
+    if (speech.listening) return speech.stop()
+    if (phase !== 'answering' || !speech.supported) return
+    voiceBase.current = draft
+    voiceActive.current = true
+    speech.start()
+  }
+  function stopVoice() {
+    voiceActive.current = false
+    speech.stop()
+  }
+
+  // Stop listening when you can no longer answer (scoring, next question, round over).
+  useEffect(() => {
+    if (phase !== 'answering' && speech.listening) stopVoice()
+  })
+
   // Put the cursor in the answer box when a new question arrives.
   useEffect(() => {
     textareaRef.current?.focus()
@@ -74,6 +101,7 @@ export default function InterviewPage() {
   async function submit() {
     const text = draft.trim()
     if (!current || !text || phase !== 'answering') return
+    stopVoice()
     const now = Date.now()
     setStoppedAt(now)
     setRetrying(false)
@@ -100,6 +128,7 @@ export default function InterviewPage() {
 
   const skip = () => {
     if (phase !== 'answering' || !current || lastAnswer) return
+    stopVoice()
     setDraft('')
     interview.skip(current.id)
   }
@@ -128,6 +157,7 @@ export default function InterviewPage() {
       if (key === '?') setShowHelp((v) => !v)
       else if (key === 'n') next()
       else if (key === 'r') retry()
+      else if (key === 'm') toggleVoice()
       else if (key === 's') skip()
       else if (key === '/') {
         event.preventDefault()
@@ -309,6 +339,9 @@ export default function InterviewPage() {
                 </div>
               ) : (
                 <div className="flex items-end gap-2">
+                  {speech.supported && (
+                    <MicButton listening={speech.listening} disabled={phase !== 'answering'} onClick={toggleVoice} />
+                  )}
                   <textarea
                     ref={textareaRef}
                     value={draft}
@@ -320,8 +353,15 @@ export default function InterviewPage() {
                       }
                     }}
                     disabled={phase !== 'answering'}
+                    readOnly={speech.listening}
                     rows={Math.min(8, Math.max(2, draft.split('\n').length))}
-                    placeholder={phase === 'answering' ? 'Type your answer… (Ctrl+Enter to submit)' : 'Please wait…'}
+                    placeholder={
+                      phase !== 'answering'
+                        ? 'Please wait…'
+                        : speech.supported
+                          ? 'Type or speak your answer… (Ctrl+Enter to submit, M for mic)'
+                          : 'Type your answer… (Ctrl+Enter to submit)'
+                    }
                     aria-label="Your answer"
                     className="min-h-[60px] flex-1 resize-none rounded-xl border border-line bg-surface p-3 text-sm outline-none transition-colors focus:border-accent disabled:opacity-60"
                   />
@@ -349,6 +389,19 @@ export default function InterviewPage() {
                     </button>
                   </div>
                 </div>
+              )}
+              {phase !== 'reviewing' && (speech.listening || speech.error) && (
+                <p
+                  role="status"
+                  className={clsx('mt-2 flex items-center gap-2 text-xs', speech.error ? 'text-red-600 dark:text-red-400' : 'text-muted')}
+                >
+                  {speech.error ?? (
+                    <>
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> Listening… speak your answer,
+                      then press the stop button (or M). You can edit the text before submitting.
+                    </>
+                  )}
+                </p>
               )}
             </div>
           )}

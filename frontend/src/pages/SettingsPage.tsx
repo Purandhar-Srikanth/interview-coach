@@ -79,6 +79,11 @@ export default function SettingsPage() {
               <b className="text-text">AI provider:</b> answers are sent to OpenAI for scoring, with
               storage turned off on their side.
             </p>
+            <p>
+              <b className="text-text">Voice answers:</b> the mic uses your browser’s own speech service
+              (Google in Chrome, Microsoft in Edge) to turn speech into text. Audio never reaches this app’s
+              server; only the text you submit does.
+            </p>
           </div>
         </section>
 
