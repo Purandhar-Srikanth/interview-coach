@@ -236,6 +236,10 @@ def partial_json_string(raw: str, field: str) -> str:
     return json.loads('"' + "".join(chars) + '"')
 
 
+# OpenAI error codes that mean "the account has no money left" (names have changed over time).
+NO_CREDIT_CODES = {"insufficient_quota", "credit_balance_exhausted", "billing_hard_limit_reached"}
+
+
 class _friendly_errors:
     """Turn OpenAI exceptions into LLMError with a message that's fine to show users."""
 
@@ -251,7 +255,7 @@ class _friendly_errors:
         if isinstance(exc, openai.APITimeoutError):
             raise LLMError("The AI took too long to respond. Please try again.") from exc
         # OpenAI uses HTTP 429 both for "too many requests" and for "no credit left".
-        if code == "insufficient_quota":
+        if code in NO_CREDIT_CODES:
             raise LLMError(
                 "The server's OpenAI account has no credit left, so the AI can't run right now."
             ) from exc

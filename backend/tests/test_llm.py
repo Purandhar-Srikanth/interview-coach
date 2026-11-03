@@ -76,6 +76,9 @@ def test_no_credit_is_reported_separately_from_busy():
     with pytest.raises(LLMError, match="no credit"):
         with _friendly_errors():
             raise _openai_error(openai.RateLimitError, 429, "insufficient_quota")
+    with pytest.raises(LLMError, match="no credit"):
+        with _friendly_errors():
+            raise _openai_error(openai.RateLimitError, 429, "credit_balance_exhausted")
     with pytest.raises(LLMError, match="busy"):
         with _friendly_errors():
             raise _openai_error(openai.RateLimitError, 429, "rate_limit_exceeded")
