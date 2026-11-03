@@ -27,6 +27,35 @@ class ProfileAnalysis(BaseModel):
     skill_gaps: list[str] = Field(description="Up to 5 JD skills not evident in the resume")
 
 
+class QuestionDraft(BaseModel):
+    # `question` must stay the first field: the UI streams it while the rest is generated.
+    question: str = Field(description="The interview question, as the interviewer would say it")
+    expected_points: list[str] = Field(
+        description="3 to 5 key points a strong answer would cover (hidden from the candidate)"
+    )
+
+
+ScoreLevel = Literal[1, 2, 3, 4, 5]
+
+
+class DimensionScore(BaseModel):
+    # Justification comes before the score so the model reasons first, then commits.
+    justification: str = Field(description="One sentence explaining the score")
+    score: ScoreLevel
+
+
+class AnswerScore(BaseModel):
+    correctness: DimensionScore = Field(description="Correctness, or STAR for behavioural")
+    depth: DimensionScore
+    clarity: DimensionScore
+    relevance: DimensionScore
+    strengths: list[str] = Field(description="1 to 3 specific things the answer did well")
+    improvements: list[str] = Field(description="1 to 3 specific, actionable improvements")
+    sample_answer: str = Field(
+        description="A stronger answer of about 120-200 words, in the candidate's voice"
+    )
+
+
 # --- API bodies ---
 
 
@@ -42,6 +71,49 @@ class SessionCreate(BaseModel):
     difficulty: Difficulty = "medium"
 
 
+class AnswerCreate(BaseModel):
+    question_id: str
+    text: str = Field(min_length=1, max_length=6_000)
+    time_taken_s: int = Field(ge=0, le=3_600)
+
+
+class SkipCreate(BaseModel):
+    question_id: str
+
+
+class ScoreOut(BaseModel):
+    correctness: int
+    depth: int
+    clarity: int
+    relevance: int
+    overall: int
+    justifications: dict[str, str]
+    strengths: list[str]
+    improvements: list[str]
+    sample_answer: str
+
+
+class AnswerOut(BaseModel):
+    id: str
+    attempt: int
+    text: str
+    skipped: bool
+    time_taken_s: int
+    score: ScoreOut | None
+
+
+class QuestionOut(BaseModel):
+    id: str
+    index: int
+    qtype: str
+    topic: str
+    difficulty: Difficulty
+    text: str
+    time_limit_s: int
+    expected_points: list[str] | None  # only revealed once the question is answered
+    answers: list[AnswerOut]
+
+
 class SessionOut(BaseModel):
     id: str
     status: str
@@ -49,3 +121,6 @@ class SessionOut(BaseModel):
     difficulty: Difficulty
     profile: ProfileAnalysis | None
     cost_usd: float
+    num_questions: int
+    questions: list[QuestionOut] = []
+    summary: str | None = None

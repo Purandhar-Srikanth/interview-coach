@@ -1,5 +1,6 @@
 import { ArrowRight, FileText, Play, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import Alert from '../components/Alert'
 import AnalyzingState from '../components/AnalyzingState'
 import DifficultyPicker from '../components/DifficultyPicker'
@@ -25,6 +26,7 @@ export default function SetupPage() {
   const [error, setError] = useState<string | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const resultRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   const jdTooShort = jd.trim().length < JD_MIN
   const resumeTooShort = resume.trim().length < RESUME_MIN
@@ -129,12 +131,12 @@ export default function SetupPage() {
             <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
-                disabled
-                className="flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white opacity-50"
+                onClick={() => navigate(`/interview/${session.id}`)}
+                className="flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110"
               >
                 <Play size={16} /> Start interview
               </button>
-              <p className="text-xs text-muted">The interview itself arrives in Milestone 2.</p>
+              <p className="text-xs text-muted">5 questions · about 15 minutes · answer at your own pace</p>
             </div>
           </>
         )}

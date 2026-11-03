@@ -10,8 +10,9 @@ Safety features:
 - the API key is never logged; responses are not stored on OpenAI's side (store=False)
 """
 
+import json
 import logging
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Literal, Protocol, TypeVar
@@ -81,6 +82,8 @@ class LLM(Protocol):
         schema: type[T],
         budget: Budget,
         max_output_tokens: int = 4000,
+        stream_field: str | None = None,
+        on_text: Callable[[str], None] | None = None,
     ) -> T: ...
 
     def stream_text(
@@ -110,20 +113,47 @@ class OpenAILLM:
         return self.settings.model_main if role == "main" else self.settings.model_fast
 
     def structured(
-        self, *, purpose, role, instructions, input, schema, budget, max_output_tokens=4000
+        self,
+        *,
+        purpose,
+        role,
+        instructions,
+        input,
+        schema,
+        budget,
+        max_output_tokens=4000,
+        stream_field=None,
+        on_text=None,
     ):
-        """Ask for JSON matching a Pydantic schema; returns a validated instance of it."""
+        """Ask for JSON matching a Pydantic schema; returns a validated instance of it.
+
+        If `stream_field` and `on_text` are given, the text of that (string) field is passed to
+        `on_text` piece by piece while the JSON is still being generated (typing effect).
+        """
         model = self._prepare(role, instructions, input, budget, max_output_tokens)
+        params = dict(
+            model=model,
+            instructions=instructions,
+            input=input,
+            text_format=schema,
+            reasoning={"effort": self.settings.reasoning_effort},
+            max_output_tokens=max_output_tokens,
+            store=False,
+        )
         with _friendly_errors():
-            response = self.client.responses.parse(
-                model=model,
-                instructions=instructions,
-                input=input,
-                text_format=schema,
-                reasoning={"effort": self.settings.reasoning_effort},
-                max_output_tokens=max_output_tokens,
-                store=False,
-            )
+            if on_text is None:
+                response = self.client.responses.parse(**params)
+            else:
+                with self.client.responses.stream(**params) as stream:
+                    raw, sent = "", 0
+                    for event in stream:
+                        if event.type == "response.output_text.delta":
+                            raw += event.delta
+                            text = partial_json_string(raw, stream_field)
+                            if len(text) > sent:
+                                on_text(text[sent:])
+                                sent = len(text)
+                    response = stream.get_final_response()
         self._record(purpose, model, response.usage, budget)
         if response.status == "incomplete" or response.output_parsed is None:
             raise LLMError("The AI's reply was cut off. Please try again.")
@@ -172,6 +202,35 @@ class OpenAILLM:
             usage.output_tokens,
             cost,
         )
+
+
+def partial_json_string(raw: str, field: str) -> str:
+    """Read a string field out of JSON that is still arriving.
+
+    partial_json_string('{"question": "What is a JO', "question") -> 'What is a JO'
+    Structured outputs write fields in schema order, so the first field appears first.
+    """
+    key_at = raw.find(f'"{field}"')
+    if key_at == -1:
+        return ""
+    colon_at = raw.find(":", key_at + len(field) + 2)
+    quote_at = raw.find('"', colon_at + 1) if colon_at != -1 else -1
+    if quote_at == -1:
+        return ""
+    chars, i = [], quote_at + 1
+    while i < len(raw):
+        if raw[i] == "\\":  # escape sequence: wait until it is complete
+            length = 6 if raw[i + 1 : i + 2] == "u" else 2
+            if i + length > len(raw):
+                break
+            chars.append(raw[i : i + length])
+            i += length
+        elif raw[i] == '"':  # end of the string
+            break
+        else:
+            chars.append(raw[i])
+            i += 1
+    return json.loads('"' + "".join(chars) + '"')
 
 
 class _friendly_errors:
