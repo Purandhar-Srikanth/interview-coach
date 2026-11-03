@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     model_fast: str = "gpt-6-luna"
     llm_timeout_seconds: float = 30
     llm_max_retries: int = 2
+    # Lower effort = faster, cheaper and more consistent; enough for this app's tasks.
+    reasoning_effort: str = "low"
+    # "openai" for real calls, "mock" for canned answers (no key or cost needed).
+    llm_mode: str = "openai"
 
     session_cost_cap_usd: float = 0.25
     daily_cost_cap_usd: float = 1.00

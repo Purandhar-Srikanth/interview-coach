@@ -27,20 +27,87 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`/api${path}`, { headers: { 'X-Visitor-Id': getVisitorId() } })
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`/api${path}`, {
+      ...init,
+      headers: { 'X-Visitor-Id': getVisitorId(), ...init.headers },
+    })
+  } catch {
+    throw new ApiError(0, "Can't reach the server. Check your connection and try again.")
+  }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new ApiError(response.status, body.detail ?? `Request failed (${response.status})`)
+    throw new ApiError(response.status, errorMessage(body.detail, response.status))
   }
   return response.json() as Promise<T>
 }
+
+// FastAPI sends either a string or a list of validation errors in `detail`.
+function errorMessage(detail: unknown, status: number): string {
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail) && detail[0]?.msg) return `Invalid input: ${detail[0].msg}`
+  if (status === 502 || status === 504) {
+    return "The server isn't responding. It may be waking up, so please try again in a moment."
+  }
+  return `Something went wrong (error ${status}).`
+}
+
+const postJson = <T>(path: string, body: unknown) =>
+  request<T>(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+// --- Types (mirror backend/app/schemas.py) ---
+
+export type Difficulty = 'easy' | 'medium' | 'hard'
 
 export type Health = {
   status: string
   version: string
   demo_mode: boolean
+  llm_mode: 'openai' | 'mock'
   llm_configured: boolean
 }
 
-export const getHealth = () => apiGet<Health>('/health')
+export type ResumeProject = { name: string; summary: string; technologies: string[] }
+
+export type ProfileAnalysis = {
+  role_title: string
+  seniority: 'intern' | 'entry' | 'mid' | 'senior'
+  jd_key_skills: string[]
+  jd_topics: string[]
+  resume_skills: string[]
+  resume_projects: ResumeProject[]
+  skill_gaps: string[]
+}
+
+export type Session = {
+  id: string
+  status: string
+  role_title: string
+  difficulty: Difficulty
+  profile: ProfileAnalysis | null
+  cost_usd: number
+}
+
+export type ParsedResume = { filename: string; text: string; chars: number }
+
+// --- Endpoints ---
+
+export const getHealth = () => request<Health>('/health')
+
+export const createSession = (body: {
+  jd_text: string
+  resume_text: string
+  difficulty: Difficulty
+}) => postJson<Session>('/sessions', body)
+
+export function parseResume(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  return request<ParsedResume>('/resume/parse', { method: 'POST', body: form })
+}

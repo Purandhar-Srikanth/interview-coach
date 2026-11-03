@@ -1,14 +1,30 @@
 """FastAPI entry point: the JSON API lives under /api, everything else is the built React app."""
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.api import resume, sessions
 from app.config import ROOT_DIR, get_settings
+from app.db import init_db
 
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 
-app = FastAPI(title="Interview Coach", version="0.1.0")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="Interview Coach", version="0.1.0", lifespan=lifespan)
+app.include_router(resume.router)
+app.include_router(sessions.router)
 
 
 @app.get("/api/health")
@@ -18,7 +34,8 @@ def health() -> dict:
         "status": "ok",
         "version": app.version,
         "demo_mode": settings.demo_mode,
-        "llm_configured": settings.openai_api_key is not None,
+        "llm_mode": settings.llm_mode,
+        "llm_configured": settings.llm_mode == "mock" or settings.openai_api_key is not None,
     }
 
 

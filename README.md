@@ -16,8 +16,8 @@ python -m venv .venv
 # 2. Frontend: install packages
 npm --prefix frontend install
 
-# 3. Your OpenAI key: either set OPENAI_API_KEY as an environment variable,
-#    or copy .env.example to .env and put the key there (.env is gitignored).
+# 3. Settings: copy .env.example to .env and put your OpenAI key in it (.env is gitignored).
+#    No key yet? Set LLM_MODE=mock in .env to use canned answers (free, offline).
 
 # 4. Start the backend (terminal 1)
 .\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000 --app-dir backend
