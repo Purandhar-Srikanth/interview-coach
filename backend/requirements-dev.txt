@@ -3,3 +3,5 @@
 pytest==9.2.0
 httpx==0.28.1
 ruff==0.17.3
+pillow==13.0.0  # scripts/make_gif.py (demo GIF)
+pip-audit==2.10.1  # dependency vulnerability scan (CI)

@@ -58,13 +58,29 @@ request_limiter = RateLimiter()
 round_limiter = RateLimiter()
 
 
-def client_ip(request: Request) -> str:
-    # Render (like most hosts) puts a proxy in front of the app; the real client
-    # address is the first entry of X-Forwarded-For.
-    forwarded = request.headers.get("x-forwarded-for")
+def client_ip_from_headers(headers: dict[str, str], client: tuple | None) -> str:
+    """The real client IP behind Render's proxy (Cloudflare), in a way clients can't fake.
+
+    X-Forwarded-For is a list that each proxy APPENDS to, so its first entry is whatever the
+    client sent (we proved a fake "1.2.3.4" got through). Trust, in order:
+      1. CF-Connecting-IP: set by Cloudflare itself, which overwrites any client value
+      2. the LAST X-Forwarded-For entry: added by the proxy closest to us
+      3. the TCP peer address
+    """
+    cloudflare_ip = headers.get("cf-connecting-ip", "").strip()
+    if cloudflare_ip:
+        return cloudflare_ip
+    forwarded = headers.get("x-forwarded-for", "")
     if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+        return forwarded.split(",")[-1].strip()
+    return client[0] if client else "unknown"
+
+
+def client_ip(request: Request) -> str:
+    return client_ip_from_headers(
+        {k.lower(): v for k, v in request.headers.items()},
+        (request.client.host, request.client.port) if request.client else None,
+    )
 
 
 def spent_today(db: Session) -> float:

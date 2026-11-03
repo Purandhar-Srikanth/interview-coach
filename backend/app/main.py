@@ -11,6 +11,7 @@ from app.api import interview, progress, resume, sessions
 from app.config import ROOT_DIR, get_settings
 from app.db import SessionLocal, init_db
 from app.guard import purge_old_data
+from app.security import SecurityMiddleware
 
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 
@@ -25,7 +26,18 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Interview Coach", version="0.1.0", lifespan=lifespan)
+# The interactive API docs (/docs, /redoc, /openapi.json) are handy locally but would publish
+# a map of the API on the live demo, so they're turned off in demo mode.
+_show_docs = not get_settings().demo_mode
+app = FastAPI(
+    title="Interview Coach",
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url="/docs" if _show_docs else None,
+    redoc_url="/redoc" if _show_docs else None,
+    openapi_url="/openapi.json" if _show_docs else None,
+)
+app.add_middleware(SecurityMiddleware)
 app.include_router(resume.router)
 app.include_router(sessions.router)
 app.include_router(interview.router)
@@ -48,7 +60,7 @@ def health() -> dict:
 if FRONTEND_DIST.exists():
     app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
 
-    @app.get("/{path:path}", include_in_schema=False)
+    @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
     def spa(path: str) -> FileResponse:
         # Real files (favicon etc.) are returned as-is; any other path gets index.html
         # so React Router can handle client-side routes like /progress.

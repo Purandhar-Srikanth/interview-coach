@@ -30,5 +30,5 @@ COPY --chown=app --from=frontend /build/dist frontend/dist
 USER app
 EXPOSE 7860
 # Render sets $PORT; 7860 is the local default.
-# --proxy-headers: trust the host's proxy for the real client IP (used by the rate limits).
-CMD ["sh", "-c", "uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port ${PORT:-7860} --proxy-headers --forwarded-allow-ips='*'"]
+# No --proxy-headers: the app reads the real client IP itself (guard.client_ip), safely.
+CMD ["sh", "-c", "uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port ${PORT:-7860}"]

@@ -25,6 +25,8 @@ jobs:
       - run: pytest -q
       - name: Eval harness dry run (mock scores, checks the eval code still works)
         run: python ../evals/run_evals.py --mock
+      - name: Known-vulnerability scan of Python packages
+        run: pip-audit -r requirements.txt --progress-spinner off
 
   frontend:
     runs-on: ubuntu-latest
@@ -39,6 +41,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: Known-vulnerability scan of npm packages
+        run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run build
 

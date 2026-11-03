@@ -149,6 +149,8 @@ npm --prefix frontend run build; npm --prefix frontend run e2e
 
 - The API key lives only on the server (`.env` locally, a Render secret in production), never in
   the browser or the repo.
+- Security review: strict security headers (CSP, HSTS), spoof-proof per-IP limits, request size
+  limits, ownership checks on every route, dependency scans in CI. See [SECURITY.md](SECURITY.md).
 - Every LLM call is refused **before** it's sent if its worst-case cost could exceed the
   **$0.25 per-session cap**; the public demo also has a **$1/day global budget**, per-visitor and
   per-IP round limits, a per-IP rate limit and input size limits. Details: [docs/DEPLOY.md](docs/DEPLOY.md).

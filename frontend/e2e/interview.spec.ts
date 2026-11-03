@@ -15,6 +15,12 @@ async function answer(page: Page, text: string) {
 }
 
 test('full interview: setup → 5 questions → summary → progress → history → delete data', async ({ page }) => {
+  // The server sends a strict Content-Security-Policy; fail if it blocks anything the app needs.
+  const blocked: string[] = []
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' && /Content Security Policy|Refused to/i.test(msg.text())) blocked.push(msg.text())
+  })
+
   // 1. Setup: sample data, analysis, profile card
   await page.goto('/')
   await page.getByRole('button', { name: 'Try with sample data' }).click()
@@ -69,6 +75,8 @@ test('full interview: setup → 5 questions → summary → progress → history
   await expect(page.getByText('All your data has been deleted.')).toBeVisible()
   await page.getByRole('link', { name: 'History' }).first().click()
   await expect(page.getByText('No interviews yet')).toBeVisible()
+
+  expect(blocked, 'Content-Security-Policy violations').toEqual([])
 })
 
 test('mobile: setup page fits the screen and the theme toggle works', async ({ browser }) => {
