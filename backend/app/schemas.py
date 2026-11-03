@@ -134,3 +134,47 @@ class SessionOut(BaseModel):
     finished_at: datetime | None = None
     questions: list[QuestionOut] = []
     summary: str | None = None
+
+
+# --- Progress, history and "my data" (M4) ---
+
+
+class SessionSummary(BaseModel):
+    id: str
+    created_at: datetime
+    finished_at: datetime | None
+    status: str
+    role_title: str
+    difficulty: Difficulty
+    focus_topic: str | None
+    average: int | None  # first attempts only
+    answered: int
+    skipped: int
+    total: int
+
+
+class TopicProgress(BaseModel):
+    topic: str
+    label: str
+    avg_score: int
+    attempts: int
+    last_score: int
+    last_seen: datetime
+    weak: bool
+
+
+class ProgressOut(BaseModel):
+    rounds_completed: int
+    questions_answered: int
+    overall_average: int | None
+    sessions: list[SessionSummary]  # oldest first, for the trend chart
+    topics: list[TopicProgress]  # weakest first
+    dimensions: dict[str, float] | None  # average 1-5 per rubric dimension
+    latest_session_id: str | None  # JD + resume to reuse for focused practice
+
+
+class MyDataOut(BaseModel):
+    sessions: int
+    answers: int
+    total_cost_usd: float
+    today_cost_usd: float

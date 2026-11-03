@@ -15,7 +15,7 @@ export default function ThemeToggle({ showLabel = false }: { showLabel?: boolean
       className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-subtle hover:text-text"
     >
       {isDark ? <Sun size={18} /> : <Moon size={18} />}
-      {showLabel && <span>{label}</span>}
+      {showLabel && <span className="whitespace-nowrap">{label}</span>}
     </button>
   )
 }

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import { History, MessageSquarePlus, Settings, TrendingUp } from 'lucide-react'
+import { History, Loader2, MessageSquarePlus, Settings, TrendingUp } from 'lucide-react'
 import { motion } from 'motion/react'
+import { Suspense } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import ApiStatus from './ApiStatus'
 import Logo from './Logo'
@@ -65,7 +66,16 @@ export default function Layout() {
           transition={{ duration: 0.2 }}
           className={clsx('mx-auto', isInterview ? 'max-w-7xl' : 'max-w-5xl')}
         >
-          <Outlet />
+          {/* Pages load on demand; show a spinner in the page area (sidebar stays). */}
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-accent" aria-label="Loading" />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </motion.div>
       </main>
 

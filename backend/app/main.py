@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import interview, resume, sessions
+from app.api import interview, progress, resume, sessions
 from app.config import ROOT_DIR, get_settings
 from app.db import init_db
 
@@ -26,6 +26,7 @@ app = FastAPI(title="Interview Coach", version="0.1.0", lifespan=lifespan)
 app.include_router(resume.router)
 app.include_router(sessions.router)
 app.include_router(interview.router)
+app.include_router(progress.router)
 
 
 @app.get("/api/health")

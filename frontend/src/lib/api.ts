@@ -41,6 +41,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const body = await response.json().catch(() => ({}))
     throw new ApiError(response.status, errorMessage(body.detail, response.status))
   }
+  if (response.status === 204) return undefined as T // no content (e.g. after a delete)
   return response.json() as Promise<T>
 }
 
@@ -213,5 +214,60 @@ export async function streamAgent(
     for (const chunk of chunks) {
       if (chunk.startsWith('data: ')) onEvent(JSON.parse(chunk.slice(6)) as AgentEvent)
     }
+  }
+}
+
+// --- Progress, history and my data (M4) ---
+
+export type SessionSummary = {
+  id: string
+  created_at: string
+  finished_at: string | null
+  status: 'in_progress' | 'completed' | string
+  role_title: string
+  difficulty: Difficulty
+  focus_topic: string | null
+  average: number | null
+  answered: number
+  skipped: number
+  total: number
+}
+
+export type TopicProgress = {
+  topic: string
+  label: string
+  avg_score: number
+  attempts: number
+  last_score: number
+  last_seen: string
+  weak: boolean
+}
+
+export type Progress = {
+  rounds_completed: number
+  questions_answered: number
+  overall_average: number | null
+  sessions: SessionSummary[]
+  topics: TopicProgress[]
+  dimensions: Record<'correctness' | 'depth' | 'clarity' | 'relevance', number> | null
+  latest_session_id: string | null
+}
+
+export type MyData = { sessions: number; answers: number; total_cost_usd: number; today_cost_usd: number }
+
+export const getProgress = () => request<Progress>('/progress')
+export const getHistory = () => request<SessionSummary[]>('/history')
+export const getMyData = () => request<MyData>('/me')
+
+/** Delete everything stored for this visitor, then forget the visitor ID and drafts locally. */
+export async function deleteMyData(): Promise<void> {
+  await request<void>('/me', { method: 'DELETE' })
+  memoryVisitorId = null
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key === VISITOR_KEY || key.startsWith('draft-')) localStorage.removeItem(key)
+    }
+  } catch {
+    // storage blocked: nothing stored locally anyway
   }
 }

@@ -138,8 +138,10 @@ class UsageLog(Base):
     __tablename__ = "usage_log"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    visitor_id: Mapped[str] = mapped_column(
-        ForeignKey("visitors.id", ondelete="CASCADE"), index=True
+    # SET NULL (not CASCADE): "delete my data" removes the link to the visitor, but the
+    # anonymous cost rows stay so the global daily spending cap can't be reset by deleting.
+    visitor_id: Mapped[str | None] = mapped_column(
+        ForeignKey("visitors.id", ondelete="SET NULL"), index=True, nullable=True
     )
     session_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     day: Mapped[date] = mapped_column(Date, index=True)
