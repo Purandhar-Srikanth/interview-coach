@@ -1,0 +1,20 @@
+# Render "Blueprint": describes the live demo service so Render can create it in one step
+# (Render dashboard -> New -> Blueprint -> pick this repo). Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: interview-coach
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true # every push to main is deployed
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: LLM_MODE
+        value: openai
+      # Secrets: Render asks for these when the Blueprint is created (never stored in git).
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DATABASE_URL # Neon Postgres URL; leave empty to use a temporary SQLite file
+        sync: false

@@ -59,7 +59,7 @@ round_limiter = RateLimiter()
 
 
 def client_ip(request: Request) -> str:
-    # Hugging Face (like most hosts) puts a proxy in front of the app; the real client
+    # Render (like most hosts) puts a proxy in front of the app; the real client
     # address is the first entry of X-Forwarded-For.
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:

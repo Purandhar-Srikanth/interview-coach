@@ -16,7 +16,7 @@ Status: **approved** · Date: 2026-11-03
 | Privacy | Store text only (no files), "Delete my data", demo data auto-purged after 7 days |
 | Rubric | 4 dimensions, 1–5 anchored scale, structured outputs |
 | Demo guard | Layered caps: $1/day global, $0.25/session, 2 rounds/visitor/day, per-IP rate limit, input size limits |
-| Hosting | Hugging Face Spaces (Docker) + Neon Postgres |
+| Hosting | Render free web service (Docker) + Neon Postgres. *Changed from Hugging Face Spaces in M5: HF made Docker Spaces a paid (PRO) feature.* |
 | Repo | pytest + Playwright smoke + GitHub Actions CI, evals folder, docs pack |
 
 ## 2. Model choice (checked against OpenAI docs, Nov 2026)
@@ -92,7 +92,7 @@ Interview Coach Agent/
 ├── e2e/                       Playwright smoke test
 ├── evals/                     cases.jsonl, run_evals.py, results.md
 ├── docs/                      PLAN.md, ARCHITECTURE.md
-├── Dockerfile                 used by Hugging Face Spaces
+├── Dockerfile, render.yaml     production image + Render service definition
 ├── .env.example, .gitignore, README.md, INTERVIEW_NOTES.md, LICENSE
 └── .github/workflows/ci.yml
 ```
@@ -149,7 +149,7 @@ Shared: sidebar (collapses to bottom bar on mobile), skeleton loaders, toast err
 | M2 | Agent + chat interview | Full 5-question interview with streaming questions, soft timer, skip/retry, keyboard shortcuts |
 | M3 | Scoring experience | Animated score reveal, rubric bars, feedback, sample answer, round summary page |
 | M4 | Memory + progress + history | Charts over multiple sessions, weak-area chips start focused rounds, review past interviews, delete my data |
-| M5 | Demo guard + deploy | Caps, allowance, rate limit, friendly limit screens; live on Hugging Face Spaces with Neon. **You'll run a few account-setup steps; I'll give exact commands** |
+| M5 | Demo guard + deploy | Caps, allowance, rate limit, friendly limit screens; live on Render with Neon. **You'll run a few account-setup steps; I'll give exact commands** |
 | M6 | Evals + e2e | `evals/` results table; Playwright smoke test in CI |
 | M7 | Voice answers | Mic button → speak → transcript fills the answer box (decision at M7: free browser speech API vs OpenAI transcription) |
 | M8 | Portfolio polish | README with GIF, live link, Mermaid diagram, results; INTERVIEW_NOTES.md |
@@ -157,7 +157,7 @@ Shared: sidebar (collapses to bottom bar on mobile), skeleton loaders, toast err
 ## 9. Risks / notes
 
 - **Python 3.14** is new; if a dependency lacks a wheel I'll pin a working version or use a 3.12 venv.
-- **No Docker locally** → the Dockerfile is first built on Hugging Face. That's fine; the app also runs locally without Docker.
-- **Hugging Face embeds Spaces in an iframe** → cookies can be blocked, so the visitor ID lives in `localStorage` and is sent as a header.
+- **No Docker locally** → the Dockerfile is first built on Render. That's fine; the app also runs locally without Docker.
+- **Visitor ID** lives in `localStorage` and is sent as a header (no cookies, so no cookie banner and no iframe issues).
 - **No GitHub CLI** → at M5 you'll either install `gh` or create the empty repo on github.com (I'll give steps).
 - Set a **monthly hard limit in your OpenAI dashboard** as a final safety net (you do this; I never touch the key).

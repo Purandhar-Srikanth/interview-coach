@@ -1,4 +1,4 @@
-# Production image (used by Hugging Face Spaces). Two stages:
+# Production image (used by Render, see render.yaml). Two stages:
 #   1. build the React frontend with Node
 #   2. a small Python image that runs FastAPI, which serves both the API and the built frontend
 
@@ -16,7 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Hugging Face runs containers as user 1000, so create that user and give it the app folder.
+# Run as a normal user, not root (a basic container-security habit).
 RUN useradd --create-home --uid 1000 app
 WORKDIR /home/app/code
 RUN chown app /home/app/code
@@ -29,5 +29,6 @@ COPY --chown=app --from=frontend /build/dist frontend/dist
 
 USER app
 EXPOSE 7860
+# Render sets $PORT; 7860 is the local default.
 # --proxy-headers: trust the host's proxy for the real client IP (used by the rate limits).
 CMD ["sh", "-c", "uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port ${PORT:-7860} --proxy-headers --forwarded-allow-ips='*'"]

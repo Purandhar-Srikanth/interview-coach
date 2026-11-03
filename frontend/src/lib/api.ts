@@ -1,5 +1,5 @@
 // Small fetch wrapper. Every request carries the anonymous visitor ID as a header
-// (not a cookie, because Hugging Face shows the app inside an iframe where cookies may be blocked).
+// (not a cookie: headers work the same on any host or embed, and need no cookie banner).
 
 const VISITOR_KEY = 'visitor-id'
 let memoryVisitorId: string | null = null
