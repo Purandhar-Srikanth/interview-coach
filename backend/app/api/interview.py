@@ -16,9 +16,9 @@ from app.agent.graph import build_graph
 from app.agent.nodes import Action, AgentContext
 from app.api.deps import CurrentVisitor, DbSession
 from app.api.sessions import LLMDep, get_own_session
-from app.config import get_settings
 from app.db import SessionLocal
-from app.llm import LLM, Budget, LLMError
+from app.guard import RateLimited, make_budget
+from app.llm import LLM, LLMError
 from app.models import Answer, InterviewSession, Question
 from app.schemas import AnswerCreate, SkipCreate
 from app.usage import save_usage
@@ -40,7 +40,7 @@ def run_agent(session_id: str, llm: LLM, action: Action, answer_id: str | None =
     def events() -> Iterator[str]:
         with SessionLocal() as db:
             session = db.get(InterviewSession, session_id)
-            budget = Budget(cap_usd=get_settings().session_cost_cap_usd, spent_usd=session.cost_usd)
+            budget = make_budget(db, session)
             ctx = AgentContext(db=db, llm=llm, budget=budget, session=session)
             try:
                 for event in build_graph().stream(
@@ -90,7 +90,7 @@ def _current_question(session: InterviewSession, question_id: str) -> Question:
 
 
 @router.post("/start")
-def start(session_id: str, visitor: CurrentVisitor, db: DbSession, llm: LLMDep):
+def start(session_id: str, visitor: CurrentVisitor, db: DbSession, llm: LLMDep, _: RateLimited):
     session = get_own_session(db, visitor, session_id)
     if session.status != "analyzed":
         raise HTTPException(409, "This interview has already started.")
@@ -99,7 +99,12 @@ def start(session_id: str, visitor: CurrentVisitor, db: DbSession, llm: LLMDep):
 
 @router.post("/answer")
 def answer(
-    session_id: str, body: AnswerCreate, visitor: CurrentVisitor, db: DbSession, llm: LLMDep
+    session_id: str,
+    body: AnswerCreate,
+    visitor: CurrentVisitor,
+    db: DbSession,
+    llm: LLMDep,
+    _: RateLimited,
 ):
     session = get_own_session(db, visitor, session_id)
     question = _current_question(session, body.question_id)
@@ -120,7 +125,14 @@ def answer(
 
 
 @router.post("/skip")
-def skip(session_id: str, body: SkipCreate, visitor: CurrentVisitor, db: DbSession, llm: LLMDep):
+def skip(
+    session_id: str,
+    body: SkipCreate,
+    visitor: CurrentVisitor,
+    db: DbSession,
+    llm: LLMDep,
+    _: RateLimited,
+):
     """Skip the current question (not counted in memory) and move on."""
     session = get_own_session(db, visitor, session_id)
     question = _current_question(session, body.question_id)
@@ -132,7 +144,9 @@ def skip(session_id: str, body: SkipCreate, visitor: CurrentVisitor, db: DbSessi
 
 
 @router.post("/next")
-def next_question(session_id: str, visitor: CurrentVisitor, db: DbSession, llm: LLMDep):
+def next_question(
+    session_id: str, visitor: CurrentVisitor, db: DbSession, llm: LLMDep, _: RateLimited
+):
     session = get_own_session(db, visitor, session_id)
     if session.status != "in_progress" or not session.questions:
         raise HTTPException(409, "This interview isn't in progress.")

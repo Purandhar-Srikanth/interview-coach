@@ -12,7 +12,17 @@ class Base(DeclarativeBase):
     pass
 
 
+def normalize_url(url: str) -> str:
+    """Neon and most hosts give "postgres://..." or "postgresql://..." URLs; SQLAlchemy needs
+    to be told which driver to use (psycopg 3)."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix) :]
+    return url
+
+
 def _make_engine(url: str):
+    url = normalize_url(url)
     # SQLite needs this flag because FastAPI may use the connection from another thread.
     is_sqlite = url.startswith("sqlite")
     connect_args = {"check_same_thread": False} if is_sqlite else {}

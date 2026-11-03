@@ -1,4 +1,4 @@
-import { ArrowRight, FileText, Play, Upload } from 'lucide-react'
+import { ArrowRight, FileText, Gift, Play, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import Alert from '../components/Alert'
@@ -8,7 +8,7 @@ import PageHeader from '../components/PageHeader'
 import ProfileCard from '../components/ProfileCard'
 import ResumeInput from '../components/ResumeInput'
 import { useStoredState } from '../hooks/useStoredState'
-import { createSession, type Difficulty, type Session } from '../lib/api'
+import { createSession, getDemoStatus, type DemoStatus, type Difficulty, type Session } from '../lib/api'
 import { SAMPLE_JD, SAMPLE_RESUME } from '../lib/samples'
 
 const JD_MIN = 50
@@ -27,10 +27,19 @@ export default function SetupPage() {
   const [session, setSession] = useState<Session | null>(null)
   const resultRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  // Public demo only: free rounds left today, and whether the daily AI budget is used up.
+  const [demo, setDemo] = useState<DemoStatus | null>(null)
 
+  useEffect(() => {
+    getDemoStatus()
+      .then(setDemo)
+      .catch(() => setDemo(null)) // not critical: the server enforces the limits anyway
+  }, [session])
+
+  const demoBlocked = Boolean(demo?.demo_mode && (demo.daily_budget_exhausted || demo.rounds_left_today === 0))
   const jdTooShort = jd.trim().length < JD_MIN
   const resumeTooShort = resume.trim().length < RESUME_MIN
-  const canSubmit = !jdTooShort && !resumeTooShort && !analyzing
+  const canSubmit = !jdTooShort && !resumeTooShort && !analyzing && !demoBlocked
 
   useEffect(() => {
     if (analyzing || session) resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -62,6 +71,25 @@ export default function SetupPage() {
         title="New interview"
         subtitle="Paste a job description and add your resume. The coach tailors every question to both."
       />
+
+      {demo?.demo_mode && (
+        <div className="mb-6">
+          {demoBlocked ? (
+            <Alert
+              message={
+                demo.daily_budget_exhausted
+                  ? "The live demo has used its AI budget for today. Please come back tomorrow, or run the project locally with your own API key (see the GitHub README)."
+                  : "You've used today's free demo rounds. Come back tomorrow, or run the project locally with your own API key (see the GitHub README)."
+              }
+            />
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent">
+              <Gift size={14} />
+              Live demo · {demo.rounds_left_today} free {demo.rounds_left_today === 1 ? 'round' : 'rounds'} left today
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="flex flex-col rounded-2xl border border-line bg-surface p-5">

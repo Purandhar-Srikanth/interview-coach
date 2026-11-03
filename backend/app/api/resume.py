@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile
 
 from app.api.deps import CurrentVisitor
+from app.guard import RateLimited
 from app.parsing import MAX_FILE_BYTES, ParseError, extract_resume_text
 from app.schemas import ResumeParseOut
 
@@ -8,7 +9,9 @@ router = APIRouter(prefix="/api/resume", tags=["resume"])
 
 
 @router.post("/parse")
-async def parse_resume(file: UploadFile, _visitor: CurrentVisitor) -> ResumeParseOut:
+async def parse_resume(
+    file: UploadFile, _visitor: CurrentVisitor, _: RateLimited
+) -> ResumeParseOut:
     """Extract text from an uploaded resume. The file itself is never stored."""
     data = await file.read(MAX_FILE_BYTES + 1)
     try:

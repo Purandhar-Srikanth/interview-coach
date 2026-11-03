@@ -54,11 +54,14 @@ class Budget:
     cap_usd: float
     spent_usd: float = 0.0
     calls: list[CallUsage] = field(default_factory=list)
+    # Shown when the cap is hit; set by the demo guard when the daily budget is the limit.
+    limit_message: str | None = None
 
     def ensure_room(self, worst_case_usd: float) -> None:
         if self.spent_usd + worst_case_usd > self.cap_usd:
             raise CostCapExceeded(
-                f"This session reached its ${self.cap_usd:.2f} cost limit. "
+                self.limit_message
+                or f"This session reached its ${self.cap_usd:.2f} cost limit. "
                 "Please start a new interview."
             )
 

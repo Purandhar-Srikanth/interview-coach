@@ -1,15 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.agent.profile import analyze_profile
 from app.api.deps import CurrentVisitor, DbSession
-from app.config import get_settings
-from app.llm import LLM, Budget, LLMError, get_llm
+from app.guard import RateLimited, check_new_round, make_budget, purge_old_data
+from app.llm import LLM, LLMError, get_llm
 from app.models import InterviewSession
 from app.schemas import PracticeCreate, SessionCreate, SessionOut
 from app.serializers import session_out
-from app.usage import save_usage
+from app.usage import log_calls, save_usage
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -26,9 +26,16 @@ def get_own_session(db, visitor, session_id: str) -> InterviewSession:
 
 @router.post("", status_code=201)
 def create_session(
-    body: SessionCreate, visitor: CurrentVisitor, db: DbSession, llm: LLMDep
+    body: SessionCreate,
+    request: Request,
+    visitor: CurrentVisitor,
+    db: DbSession,
+    llm: LLMDep,
+    _: RateLimited,
 ) -> SessionOut:
     """Create an interview session and analyse the JD + resume."""
+    purge_old_data(db)
+    check_new_round(db, visitor.id, request)
     session = InterviewSession(
         visitor_id=visitor.id,
         jd_text=body.jd_text.strip(),
@@ -38,11 +45,14 @@ def create_session(
     db.add(session)
     db.flush()  # assigns session.id
 
-    budget = Budget(cap_usd=get_settings().session_cost_cap_usd)
+    budget = make_budget(db)
     try:
         profile = analyze_profile(llm, session.jd_text, session.resume_text, budget)
     except LLMError as exc:
         db.rollback()
+        # A failed analysis may still have cost money; log it so the daily cap stays accurate.
+        log_calls(db, visitor.id, None, budget.calls)
+        db.commit()
         raise HTTPException(503, str(exc)) from exc
 
     session.profile = profile.model_dump(mode="json")
@@ -60,13 +70,19 @@ def get_session(session_id: str, visitor: CurrentVisitor, db: DbSession) -> Sess
 
 @router.post("/{session_id}/practice", status_code=201)
 def practice_again(
-    session_id: str, body: PracticeCreate, visitor: CurrentVisitor, db: DbSession
+    session_id: str,
+    body: PracticeCreate,
+    request: Request,
+    visitor: CurrentVisitor,
+    db: DbSession,
+    _: RateLimited,
 ) -> SessionOut:
     """Start a new round from an earlier session's JD + resume, optionally focused on one topic.
 
     The profile analysis is reused, so this makes no LLM call.
     """
     source = get_own_session(db, visitor, session_id)
+    check_new_round(db, visitor.id, request)
     if source.profile is None:
         raise HTTPException(409, "That interview was never analysed.")
     session = InterviewSession(

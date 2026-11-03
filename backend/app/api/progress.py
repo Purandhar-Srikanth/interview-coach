@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 
 from app import progress as progress_service
 from app.api.deps import CurrentVisitor, DbSession
+from app.guard import demo_status
 from app.models import Answer, InterviewSession, Question, UsageLog
 from app.schemas import MyDataOut, ProgressOut, SessionSummary
 
@@ -21,6 +22,12 @@ def get_progress(visitor: CurrentVisitor, db: DbSession) -> ProgressOut:
 @router.get("/history")
 def get_history(visitor: CurrentVisitor, db: DbSession) -> list[SessionSummary]:
     return progress_service.history(db, visitor.id)
+
+
+@router.get("/demo")
+def get_demo_status(visitor: CurrentVisitor, db: DbSession) -> dict:
+    """Free rounds left today and whether the demo's daily AI budget is used up."""
+    return demo_status(db, visitor.id)
 
 
 @router.get("/me")

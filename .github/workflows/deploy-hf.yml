@@ -1,0 +1,39 @@
+name: Deploy to Hugging Face
+
+# Runs after the CI workflow succeeds on main, so a broken build is never deployed.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: # allows a manual deploy from the Actions tab
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Push a snapshot to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }} # a Hugging Face "write" token
+          HF_SPACE: ${{ vars.HF_SPACE }} # e.g. your-username/interview-coach
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "HF_TOKEN or HF_SPACE not set; skipping deploy."
+            exit 0
+          fi
+          # Spaces read their settings from README front matter, so swap in the Space README.
+          cp deploy/huggingface/README.md README.md
+          # Spaces reject binary files that aren't in Git LFS; the demo doesn't need them.
+          rm -rf docs/media
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          # A fresh one-commit history: the Space only needs the current code.
+          git checkout --orphan hf-deploy
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7}"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf-deploy:main

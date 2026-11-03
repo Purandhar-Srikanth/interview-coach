@@ -26,8 +26,12 @@ class Settings(BaseSettings):
     session_cost_cap_usd: float = 0.25
     daily_cost_cap_usd: float = 1.00
 
+    # Public demo protection (only active when DEMO_MODE=true).
     demo_mode: bool = False
     demo_rounds_per_visitor_per_day: int = 2
+    demo_rounds_per_ip_per_day: int = 6  # visitor IDs are easy to reset; IPs less so
+    demo_requests_per_minute: int = 20  # per IP, for endpoints that call the LLM
+    demo_data_retention_days: int = 7
 
     database_url: str = f"sqlite:///{ROOT_DIR / 'interview_coach.db'}"
 

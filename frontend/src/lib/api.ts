@@ -271,3 +271,13 @@ export async function deleteMyData(): Promise<void> {
     // storage blocked: nothing stored locally anyway
   }
 }
+
+// --- Public demo allowance (M5) ---
+
+export type DemoStatus = {
+  demo_mode: boolean
+  rounds_left_today: number | null
+  daily_budget_exhausted: boolean
+}
+
+export const getDemoStatus = () => request<DemoStatus>('/demo')

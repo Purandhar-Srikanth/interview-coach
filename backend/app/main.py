@@ -3,13 +3,14 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import interview, progress, resume, sessions
 from app.config import ROOT_DIR, get_settings
-from app.db import init_db
+from app.db import SessionLocal, init_db
+from app.guard import purge_old_data
 
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 
@@ -19,6 +20,8 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(messag
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
+    with SessionLocal() as db:
+        purge_old_data(db, force=True)  # demo only: delete data older than the retention period
     yield
 
 
@@ -49,6 +52,8 @@ if FRONTEND_DIST.exists():
     def spa(path: str) -> FileResponse:
         # Real files (favicon etc.) are returned as-is; any other path gets index.html
         # so React Router can handle client-side routes like /progress.
+        if path.startswith("api/"):  # a mistyped API URL should be a 404, not the web page
+            raise HTTPException(404, "Not found")
         file = FRONTEND_DIST / path
         if path and file.is_file() and file.resolve().is_relative_to(FRONTEND_DIST):
             return FileResponse(file)
