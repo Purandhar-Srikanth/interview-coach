@@ -245,13 +245,24 @@ class _friendly_errors:
     def __exit__(self, exc_type, exc, _tb):
         if exc is None or not isinstance(exc, openai.OpenAIError):
             return False
-        log.warning("OpenAI call failed: %s", type(exc).__name__)  # never log the key/request
+        # Log only the error type and OpenAI's error code (never the key or the request).
+        code = getattr(exc, "code", None)
+        log.warning("OpenAI call failed: %s (code=%s)", type(exc).__name__, code)
         if isinstance(exc, openai.APITimeoutError):
             raise LLMError("The AI took too long to respond. Please try again.") from exc
+        # OpenAI uses HTTP 429 both for "too many requests" and for "no credit left".
+        if code == "insufficient_quota":
+            raise LLMError(
+                "The server's OpenAI account has no credit left, so the AI can't run right now."
+            ) from exc
         if isinstance(exc, openai.RateLimitError):
             raise LLMError("The AI service is busy right now. Please try again shortly.") from exc
         if isinstance(exc, openai.AuthenticationError):
             raise LLMError("The server's OpenAI API key was rejected.") from exc
+        if isinstance(exc, openai.NotFoundError):
+            raise LLMError(
+                "The configured AI model isn't available to this OpenAI account."
+            ) from exc
         raise LLMError("The AI service returned an error. Please try again.") from exc
 
 

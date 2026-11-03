@@ -58,3 +58,27 @@ def test_roles_map_to_configured_models():
     llm = OpenAILLM(Settings(model_main="big", model_fast="small"))
     assert llm.model_for("main") == "big"
     assert llm.model_for("fast") == "small"
+
+
+def _openai_error(cls, status: int, code: str | None):
+    import httpx2
+
+    request = httpx2.Request("POST", "https://api.openai.com/v1/responses")
+    response = httpx2.Response(status, request=request)
+    return cls("error", response=response, body={"code": code} if code else None)
+
+
+def test_no_credit_is_reported_separately_from_busy():
+    import openai
+
+    from app.llm import _friendly_errors
+
+    with pytest.raises(LLMError, match="no credit"):
+        with _friendly_errors():
+            raise _openai_error(openai.RateLimitError, 429, "insufficient_quota")
+    with pytest.raises(LLMError, match="busy"):
+        with _friendly_errors():
+            raise _openai_error(openai.RateLimitError, 429, "rate_limit_exceeded")
+    with pytest.raises(LLMError, match="model"):
+        with _friendly_errors():
+            raise _openai_error(openai.NotFoundError, 404, "model_not_found")
