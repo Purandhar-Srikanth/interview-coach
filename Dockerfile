@@ -3,7 +3,7 @@
 #   2. a small Python image that runs FastAPI, which serves both the API and the built frontend
 
 # ---- Stage 1: frontend ----
-FROM node:24-slim AS frontend
+FROM node:26-slim AS frontend
 WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
