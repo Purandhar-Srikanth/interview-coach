@@ -7,7 +7,7 @@ from app.api.deps import CurrentVisitor, DbSession
 from app.config import get_settings
 from app.llm import LLM, Budget, LLMError, get_llm
 from app.models import InterviewSession
-from app.schemas import SessionCreate, SessionOut
+from app.schemas import PracticeCreate, SessionCreate, SessionOut
 from app.serializers import session_out
 from app.usage import save_usage
 
@@ -56,3 +56,29 @@ def create_session(
 @router.get("/{session_id}")
 def get_session(session_id: str, visitor: CurrentVisitor, db: DbSession) -> SessionOut:
     return session_out(get_own_session(db, visitor, session_id))
+
+
+@router.post("/{session_id}/practice", status_code=201)
+def practice_again(
+    session_id: str, body: PracticeCreate, visitor: CurrentVisitor, db: DbSession
+) -> SessionOut:
+    """Start a new round from an earlier session's JD + resume, optionally focused on one topic.
+
+    The profile analysis is reused, so this makes no LLM call.
+    """
+    source = get_own_session(db, visitor, session_id)
+    if source.profile is None:
+        raise HTTPException(409, "That interview was never analysed.")
+    session = InterviewSession(
+        visitor_id=visitor.id,
+        role_title=source.role_title,
+        jd_text=source.jd_text,
+        resume_text=source.resume_text,
+        profile=source.profile,
+        difficulty=body.difficulty or source.difficulty,
+        focus_topic=body.focus_topic.value if body.focus_topic else None,
+        status="analyzed",
+    )
+    db.add(session)
+    db.commit()
+    return session_out(session)

@@ -1,7 +1,14 @@
 """Convert database rows into API/stream output models."""
 
+from datetime import UTC, datetime
+
 from app.models import Answer, InterviewSession, Question
 from app.schemas import AnswerOut, ProfileAnalysis, QuestionOut, ScoreOut, SessionOut
+
+
+def utc(value: datetime | None) -> datetime | None:
+    """SQLite forgets timezones; all our times are stored in UTC, so label them as such."""
+    return value.replace(tzinfo=UTC) if value and value.tzinfo is None else value
 
 
 def answer_out(answer: Answer) -> AnswerOut:
@@ -55,6 +62,9 @@ def session_out(session: InterviewSession) -> SessionOut:
         profile=ProfileAnalysis.model_validate(session.profile) if session.profile else None,
         cost_usd=round(session.cost_usd, 5),
         num_questions=len(session.plan) if session.plan else 5,
+        focus_topic=session.focus_topic,
+        created_at=utc(session.created_at),
+        finished_at=utc(session.finished_at),
         questions=[question_out(q) for q in session.questions],
         summary=session.summary,
     )

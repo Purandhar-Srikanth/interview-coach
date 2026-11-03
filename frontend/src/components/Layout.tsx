@@ -16,6 +16,8 @@ const NAV_ITEMS = [
 /** App frame: sidebar on desktop, top bar + bottom tab bar on mobile. Pages render in <Outlet />. */
 export default function Layout() {
   const location = useLocation()
+  // The interview page is wider: chat on the left, score panel on the right.
+  const isInterview = /^\/interview\/[^/]+$/.test(location.pathname)
 
   return (
     <div className="min-h-dvh md:flex">
@@ -61,7 +63,7 @@ export default function Layout() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="mx-auto max-w-5xl"
+          className={clsx('mx-auto', isInterview ? 'max-w-7xl' : 'max-w-5xl')}
         >
           <Outlet />
         </motion.div>

@@ -149,11 +149,18 @@ export type Question = {
 
 export type SessionDetail = Session & {
   num_questions: number
+  focus_topic: string | null
+  created_at: string
+  finished_at: string | null
   questions: Question[]
   summary: string | null
 }
 
 export const getSession = (id: string) => request<SessionDetail>(`/sessions/${id}`)
+
+/** New round from an earlier session's JD + resume (no new analysis), optionally on one topic. */
+export const practiceAgain = (id: string, focusTopic: string | null = null) =>
+  postJson<SessionDetail>(`/sessions/${id}/practice`, { focus_topic: focusTopic })
 
 /** Events streamed by the agent (see backend/app/agent/nodes.py). */
 export type AgentEvent =

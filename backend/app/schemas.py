@@ -1,5 +1,6 @@
 """Pydantic models: API request/response bodies and the JSON shapes we ask the LLM for."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -71,6 +72,12 @@ class SessionCreate(BaseModel):
     difficulty: Difficulty = "medium"
 
 
+class PracticeCreate(BaseModel):
+    # None = a normal mixed round; a topic = a focused round on that topic.
+    focus_topic: Topic | None = None
+    difficulty: Difficulty | None = None  # None = same as the original session
+
+
 class AnswerCreate(BaseModel):
     question_id: str
     text: str = Field(min_length=1, max_length=6_000)
@@ -122,5 +129,8 @@ class SessionOut(BaseModel):
     profile: ProfileAnalysis | None
     cost_usd: float
     num_questions: int
+    focus_topic: str | None = None
+    created_at: datetime
+    finished_at: datetime | None = None
     questions: list[QuestionOut] = []
     summary: str | None = None

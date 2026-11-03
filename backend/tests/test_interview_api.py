@@ -133,3 +133,26 @@ def test_other_visitors_cannot_use_the_session(client):
         client.post(f"/api/sessions/{session_id}/answer", json=body, headers=other).status_code
         == 404
     )
+
+
+def test_practice_round_reuses_profile_and_focuses_topic(client, fake_llm):
+    session_id = create(client).json()["id"]
+    response = client.post(
+        f"/api/sessions/{session_id}/practice", json={"focus_topic": "pandas", "difficulty": "hard"}
+    )
+    assert response.status_code == 201
+    new = response.json()
+    assert new["id"] != session_id
+    assert new["focus_topic"] == "pandas"
+    assert new["difficulty"] == "hard"
+    assert fake_llm.calls == ["analyze_profile"]  # no second analysis
+
+    evts = events(client.post(f"/api/sessions/{new['id']}/start"))
+    plan = next(e for e in evts if e["type"] == "plan")
+    assert [t["topic"] for t in plan["topics"]] == ["pandas"] * 5
+
+
+def test_practice_rejects_unknown_topic(client):
+    session_id = create(client).json()["id"]
+    response = client.post(f"/api/sessions/{session_id}/practice", json={"focus_topic": "cooking"})
+    assert response.status_code == 422
