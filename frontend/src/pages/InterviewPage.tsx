@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import Alert from '../components/Alert'
 import BottomSheet from '../components/BottomSheet'
+import PrivateInterview from '../components/PrivateInterview'
 import AnswerTimer from '../components/interview/AnswerTimer'
 import MicButton from '../components/interview/MicButton'
 import { AgentBubble, SkippedNote, TypingDots, UserBubble } from '../components/interview/ChatBubbles'
@@ -169,6 +170,7 @@ export default function InterviewPage() {
   })
 
   if (!session) {
+    if (interview.notFound) return <PrivateInterview />
     return error ? (
       <div className="space-y-4">
         <Alert message={error} />

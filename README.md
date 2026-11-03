@@ -9,7 +9,7 @@ stronger sample answer, and **remembers your weak topics** so later rounds focus
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **▶ Live demo: <https://interview-coach-tgse.onrender.com>** (2 free rounds per visitor per day;
-the free server sleeps when idle, so the first visit can take ~50 s to wake up)
+a scheduled ping keeps the free server awake, and the link shows a preview card when shared)
 
 ![Demo: setup, a tailored question streaming in, an animated rubric score, progress charts](docs/media/demo.gif)
 
@@ -127,7 +127,7 @@ with hidden input). Settings and limits are documented in [.env.example](.env.ex
 # terminal 2: UI on :5173 (proxies /api to :8000)
 npm --prefix frontend run dev
 
-# backend: 64 tests with a fake LLM (free, offline) + lint
+# backend: 71 tests with a fake LLM (free, offline) + lint
 cd backend; ..\.venv\Scripts\python -m pytest -q; ..\.venv\Scripts\ruff check .
 # end-to-end browser tests (Playwright, mock LLM)
 npm --prefix frontend run build; npm --prefix frontend run e2e
@@ -142,7 +142,7 @@ npm --prefix frontend run build; npm --prefix frontend run e2e
 | Backend | FastAPI, SQLAlchemy, Pydantic | typed APIs, SSE streaming, same code on SQLite and Postgres |
 | LLM | OpenAI Responses API | structured outputs for scores; streaming of a JSON field for the typing effect |
 | Frontend | React, TypeScript, Vite, Tailwind, Recharts, Motion | real interactivity, charts, animations |
-| Quality | pytest, Playwright, ruff, oxlint, GitHub Actions | 64 unit/API tests, 4 browser tests, Docker build check, eval dry run |
+| Quality | pytest, Playwright, ruff, oxlint, GitHub Actions | 71 unit/API tests, 6 browser tests, Docker build check, eval dry run |
 | Hosting | Render (Docker, free) + Neon Postgres | auto-deploys on push to `main` |
 
 ## Safety, cost and privacy

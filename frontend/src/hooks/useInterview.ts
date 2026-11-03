@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getSession, streamAgent, type AgentEvent, type SessionDetail } from '../lib/api'
+import { ApiError, getSession, streamAgent, type AgentEvent, type SessionDetail } from '../lib/api'
 
 /** Text the agent is typing right now (a question or the round summary). */
 export type Streaming =
@@ -20,6 +20,8 @@ export function useInterview(sessionId: string) {
   const [streaming, setStreaming] = useState<Streaming>(null)
   const [busy, setBusy] = useState<Busy>('loading')
   const [error, setError] = useState<string | null>(null)
+  // Missing or someone else's interview (e.g. a shared link): the server says 404 for both.
+  const [notFound, setNotFound] = useState(false)
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null)
   const [memoryNote, setMemoryNote] = useState<MemoryNote | null>(null)
   const [average, setAverage] = useState<number | null>(null)
@@ -117,6 +119,7 @@ export function useInterview(sessionId: string) {
       .catch((err) => {
         if (cancelled) return
         setBusy(null)
+        if (err instanceof ApiError && err.status === 404) setNotFound(true)
         setError(err instanceof Error ? err.message : 'Could not load this interview.')
       })
     return () => {
@@ -136,6 +139,7 @@ export function useInterview(sessionId: string) {
     streaming,
     busy,
     error,
+    notFound,
     pendingAnswer,
     memoryNote,
     average,

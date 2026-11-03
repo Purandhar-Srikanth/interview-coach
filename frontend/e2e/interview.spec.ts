@@ -79,6 +79,24 @@ test('full interview: setup → 5 questions → summary → progress → history
   expect(blocked, 'Content-Security-Policy violations').toEqual([])
 })
 
+test('a shared interview link opened in another browser explains it is private', async ({ page }) => {
+  await page.goto('/interview/11111111-1111-4111-8111-111111111111')
+  await expect(page.getByRole('heading', { name: 'This interview is private' })).toBeVisible()
+  await page.goto('/interview/11111111-1111-4111-8111-111111111111/summary')
+  await expect(page.getByRole('heading', { name: 'This interview is private' })).toBeVisible()
+  await page.getByRole('link', { name: /Start your own/ }).click()
+  await expect(page.getByRole('heading', { name: 'New interview' })).toBeVisible()
+})
+
+test('link previews: the page has Open Graph tags and the preview image is served', async ({ page, request }) => {
+  await page.goto('/')
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content')
+  expect(image).toMatch(/^https:\/\/.+\/og-image\.png$/)
+  const response = await request.get('/og-image.png')
+  expect(response.status()).toBe(200)
+  expect(response.headers()['content-type']).toBe('image/png')
+})
+
 test('mobile: setup page fits the screen and the theme toggle works', async ({ browser }) => {
   const page = await browser.newPage({ viewport: { width: 375, height: 812 }, isMobile: true })
   await page.goto('/')

@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import Alert from '../components/Alert'
 import Markdown from '../components/Markdown'
+import PrivateInterview from '../components/PrivateInterview'
 import ScoreRing from '../components/score/ScoreRing'
-import { getSession, practiceAgain, type Question, type SessionDetail } from '../lib/api'
+import { ApiError, getSession, practiceAgain, type Question, type SessionDetail } from '../lib/api'
 import { DIMENSIONS, dimensionLabel, formatDuration, QTYPE_LABELS, scoreTone } from '../lib/format'
 import { topicLabel } from '../lib/topics'
 
@@ -21,12 +22,16 @@ export default function SummaryPage() {
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false) // missing or someone else's (a shared link)
   const [starting, setStarting] = useState<string | null>(null) // which practice button is busy
 
   useEffect(() => {
     getSession(id)
       .then(setSession)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load this interview.'))
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 404) setNotFound(true)
+        setError(err instanceof Error ? err.message : 'Could not load this interview.')
+      })
   }, [id])
 
   async function practise(topic: string | null) {
@@ -40,6 +45,7 @@ export default function SummaryPage() {
     }
   }
 
+  if (notFound) return <PrivateInterview />
   if (error && !session) return <Alert message={error} />
   if (!session) {
     return (
