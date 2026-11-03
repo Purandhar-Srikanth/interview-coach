@@ -1,0 +1,4 @@
+# Keep Unix line endings in the repo (the deploy server runs Linux)
+* text=auto eol=lf
+*.png binary
+*.gif binary

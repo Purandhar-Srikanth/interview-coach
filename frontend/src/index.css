@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/* Dark mode is switched by a `dark` class on <html> (set by the theme toggle). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Colour tokens: components use these names (bg-surface, text-muted, ...) and
+   only this file knows the actual light/dark values. */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --subtle: #f1f5f9;
+  --line: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+}
+
+.dark {
+  --bg: #0b1120;
+  --surface: #111827;
+  --subtle: #1e293b;
+  --line: #2a3a52;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-soft: #172554;
+}
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+}
+
+body {
+  @apply bg-bg font-sans text-text antialiased;
+  transition: background-color 0.2s, color 0.2s;
+}
