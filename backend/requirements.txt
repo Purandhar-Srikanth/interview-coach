@@ -8,4 +8,4 @@ langgraph==1.2.19
 pypdf==6.21.4
 python-docx==1.2.0
 python-multipart==0.0.33
-psycopg[binary]==3.3.7  # Postgres driver (Neon) for the live demo
+psycopg[binary]==3.3.8  # Postgres driver (Neon) for the live demo
